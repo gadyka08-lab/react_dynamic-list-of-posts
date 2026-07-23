@@ -8,53 +8,116 @@ import { PostsList } from './components/PostsList';
 import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
+import { useEffect, useState } from 'react';
+import { client } from './utils/fetchClient';
+import { Post } from './types/Post';
+import { User } from './types/User';
+import { ErrorMessage } from './types/error';
 
-export const App = () => (
-  <main className="section">
-    <div className="container">
-      <div className="tile is-ancestor">
-        <div className="tile is-parent">
-          <div className="tile is-child box is-success">
-            <div className="block">
-              <UserSelector />
-            </div>
+export const App = () => {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [errorMessage, setErrorMessage] = useState('');
+  // Стан для зберігання списку всіх користувачів, завантажених з API
+  const [users, setUsers] = useState<User[]>([]);
 
-            <div className="block" data-cy="MainContent">
-              <p data-cy="NoSelectedUser">No user selected</p>
+  // Стан для зберігання обраного користувача (або null, якщо ніхто не вибраний)
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-              <Loader />
+  // Ефект для первинного завантаження юзерів
+  useEffect(() => {
+    client
+      .get<User[]>('/users')
+      .then(setUsers)
+      .catch(() => {
+        // У разі помилки завантаження показуємо відповідне повідомлення
+        setErrorMessage('Something went wrong');
+      });
+  }, []);
 
-              <div
-                className="notification is-danger"
-                data-cy="PostsLoadingError"
-              >
-                Something went wrong!
+  useEffect(() => {
+    if (!selectedUser) {
+      return;
+    }
+
+    client
+      .get<Post[]>(`/posts?userId=${selectedUser.id}`)
+      .then(response => {
+        // записуємо отримані пости у стан
+        setPosts(response);
+      })
+      .catch(() => {
+        // якщо помилка---- повідомлення
+        setErrorMessage('No posts yet');
+      })
+      .finally(() => {
+        // вимикаємо лоадер незалежно від результату запиту
+        setIsLoading(false);
+      });
+  }, [selectedUser]); // дивимося за зміною вибраного юзера
+
+  // функцію обробника
+  const handleSelectUser = (user: User) => {
+    setSelectedUser(user);
+    setIsLoading(true);
+  };
+
+  return (
+    <main className="section">
+      <div className="container">
+        <div className="tile is-ancestor">
+          <div className="tile is-parent">
+            <div className="tile is-child box is-success">
+              <div className="block">
+                <UserSelector
+                  users={users}
+                  selectedUser={selectedUser}
+                  setSelectedUser={setSelectedUser}
+                  handleSelectUser={handleSelectUser}
+                />
               </div>
 
-              <div className="notification is-warning" data-cy="NoPostsYet">
-                No posts yet
+              <div className="block" data-cy="MainContent">
+                {selectedUser === null ? (
+                  <p data-cy="NoSelectedUser">No user selected</p>
+                ) : isLoading ? (
+                  <Loader />
+                ) : posts.length === 0 ? (
+                  <div className="notification is-warning" data-cy="NoPostsYet">
+                    {ErrorMessage.NO_POSTS}
+                  </div>
+                ) : (
+                  <PostsList posts={posts} />
+                )}
               </div>
 
-              <PostsList />
+              {errorMessage && (
+                <div
+                  className="notification is-danger"
+                  data-cy="PostsLoadingError"
+                >
+                  {ErrorMessage.POSTS_LOAD_ERROR}
+                </div>
+              )}
             </div>
           </div>
-        </div>
 
-        <div
-          data-cy="Sidebar"
-          className={classNames(
-            'tile',
-            'is-parent',
-            'is-8-desktop',
-            'Sidebar',
-            'Sidebar--open',
-          )}
-        >
-          <div className="tile is-child box is-success ">
-            <PostDetails />
+          <div
+            data-cy="Sidebar"
+            className={classNames(
+              'tile',
+              'is-parent',
+              'is-8-desktop',
+              'Sidebar',
+              'Sidebar--open',
+            )}
+          >
+            <div className="tile is-child box is-success ">
+              <PostDetails />
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  </main>
-);
+    </main>
+  );
+};
