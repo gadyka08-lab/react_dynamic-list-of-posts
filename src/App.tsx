@@ -23,6 +23,7 @@ export const App = () => {
   // Стан для зберігання обраного користувача (або null, якщо ніхто не вибраний)
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
   // Ефект для первинного завантаження юзерів
   useEffect(() => {
@@ -87,7 +88,11 @@ export const App = () => {
                     {ErrorMessage.NO_POSTS}
                   </div>
                 ) : (
-                  <PostsList posts={posts} />
+                  <PostsList
+                    posts={posts}
+                    selectedPost={selectedPost}
+                    setSelectedPost={setSelectedPost}
+                  />
                 )}
               </div>
 
@@ -113,7 +118,7 @@ export const App = () => {
             )}
           >
             <div className="tile is-child box is-success ">
-              <PostDetails />
+              <PostDetails selectedPost={selectedPost} />
             </div>
           </div>
         </div>
