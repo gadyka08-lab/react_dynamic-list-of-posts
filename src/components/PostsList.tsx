@@ -1,11 +1,13 @@
 import React from 'react';
 import { Post } from '../types/Post';
+// import { CommentData } from '../types/Comment';
 
 // 1. Описуємо інтерфейс для пропсів компонента
 interface Props {
   posts: Post[];
   selectedPost: Post | null;
   setSelectedPost: (post: Post | null) => void;
+  // onSubmit: (newComment: CommentData) => void;
 }
 
 export const PostsList: React.FC<Props> = ({

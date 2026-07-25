@@ -4,20 +4,25 @@ import { NewCommentForm } from './NewCommentForm';
 import { Post } from '../types/Post';
 import { client } from '../utils/fetchClient';
 import { ErrorMessage } from '../types/error';
-import { Comment } from '../types/Comment';
+import { Comment, CommentData } from '../types/Comment';
 
 interface Props {
   selectedPost: Post | null;
+  // onSubmit: (newComment: CommentData) => void;
+  setErrorMessage: (message: string) => void;
 }
 
-export const PostDetails: React.FC<Props> = ({ selectedPost }) => {
+export const PostDetails: React.FC<Props> = ({
+  selectedPost,
+  setErrorMessage,
+}) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
 
   useEffect(() => {
-    // 1️⃣ Захисна перевірка: якщо пост ще не вибрано (null), ми нічого не робимо
+    // якщо пост ще не вибрано (null), ми нічого не робимо
     if (!selectedPost) {
       return;
     }
@@ -48,6 +53,24 @@ export const PostDetails: React.FC<Props> = ({ selectedPost }) => {
   if (!selectedPost) {
     return null;
   }
+
+  const handleCommentSubmit = (newCommentData: CommentData) => {
+    // перевіряємо чи вибраний якийсь пост, щоб туди + коментар
+    if (!selectedPost) {
+      return;
+    }
+
+    client
+      .post<Comment>(`/posts/${selectedPost.id}/comments`, newCommentData)
+      .then(createdComment => {
+        // Додаємо новий коментар до списку вже існуючих коментарів у стані
+        setComments(prevComments => [...prevComments, createdComment]);
+      })
+      .catch(() => {
+        // Обробляємо можливу помилку відправки
+        setErrorMessage('Failed to add a comment');
+      });
+  };
 
   return (
     <>
@@ -118,7 +141,9 @@ export const PostDetails: React.FC<Props> = ({ selectedPost }) => {
           )}
         </div>
 
-        {!error && showCommentForm && <NewCommentForm />}
+        {!error && showCommentForm && (
+          <NewCommentForm onSubmit={handleCommentSubmit} />
+        )}
       </div>
     </>
   );

@@ -118,7 +118,10 @@ export const App = () => {
             )}
           >
             <div className="tile is-child box is-success ">
-              <PostDetails selectedPost={selectedPost} />
+              <PostDetails
+                selectedPost={selectedPost}
+                setErrorMessage={setErrorMessage}
+              />
             </div>
           </div>
         </div>
