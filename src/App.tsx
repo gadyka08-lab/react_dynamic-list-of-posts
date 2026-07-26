@@ -32,7 +32,7 @@ export const App = () => {
       .then(setUsers)
       .catch(() => {
         // У разі помилки завантаження показуємо відповідне повідомлення
-        setErrorMessage('Something went wrong');
+        setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
       });
   }, []);
 
@@ -49,7 +49,7 @@ export const App = () => {
       })
       .catch(() => {
         // якщо помилка---- повідомлення
-        setErrorMessage('No posts yet');
+        setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
       })
       .finally(() => {
         // вимикаємо лоадер незалежно від результату запиту
@@ -61,6 +61,7 @@ export const App = () => {
   const handleSelectUser = (user: User) => {
     setSelectedUser(user);
     setIsLoading(true);
+    setSelectedPost(null);
   };
 
   return (
@@ -83,7 +84,7 @@ export const App = () => {
                   <p data-cy="NoSelectedUser">No user selected</p>
                 ) : isLoading ? (
                   <Loader />
-                ) : posts.length === 0 ? (
+                ) : posts.length === 0 && !errorMessage ? (
                   <div className="notification is-warning" data-cy="NoPostsYet">
                     {ErrorMessage.NO_POSTS}
                   </div>
@@ -114,7 +115,9 @@ export const App = () => {
               'is-parent',
               'is-8-desktop',
               'Sidebar',
-              'Sidebar--open',
+              {
+                'Sidebar--open': selectedPost !== null, // + клас за наявності вибраного поста
+              },
             )}
           >
             <div className="tile is-child box is-success ">

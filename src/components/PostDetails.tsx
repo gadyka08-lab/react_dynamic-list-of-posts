@@ -20,6 +20,9 @@ export const PostDetails: React.FC<Props> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  // стан збереження ID коментарів, які видаляються
+  // const [deletingCommentIds, setDeletingCommentIds] = useState<number[]>([]);
 
   useEffect(() => {
     // якщо пост ще не вибрано (null), ми нічого не робимо
@@ -57,8 +60,10 @@ export const PostDetails: React.FC<Props> = ({
   const handleCommentSubmit = (newCommentData: CommentData) => {
     // перевіряємо чи вибраний якийсь пост, щоб туди + коментар
     if (!selectedPost) {
-      return;
+      return Promise.reject();
     }
+
+    setIsSubmitting(true); // вкл завантаження перед запитом
 
     client
       .post<Comment>(`/posts/${selectedPost.id}/comments`, newCommentData)
@@ -68,8 +73,23 @@ export const PostDetails: React.FC<Props> = ({
       })
       .catch(() => {
         // Обробляємо можливу помилку відправки
-        setErrorMessage('Failed to add a comment');
+        setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
+      })
+      .finally(() => {
+        setIsSubmitting(false); // викл завантаження після завершення запиту
       });
+  };
+
+  const handleCommentDelete = (commentId: number) => {
+    // вид. коментар одразу
+    setComments(prevComments =>
+      prevComments.filter(comment => comment.id !== commentId),
+    );
+
+    // і лише зараз робимозапит на видалення з сервера
+    client.delete(`/comments/${commentId}`).catch(() => {
+      setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
+    });
   };
 
   return (
@@ -117,6 +137,8 @@ export const PostDetails: React.FC<Props> = ({
                         type="button"
                         className="delete is-small"
                         aria-label="delete"
+                        onClick={() => handleCommentDelete(comment.id)}
+                        disabled={deletingCommentIds.includes(comment.id)}
                       >
                         delete button
                       </button>
@@ -142,7 +164,10 @@ export const PostDetails: React.FC<Props> = ({
         </div>
 
         {!error && showCommentForm && (
-          <NewCommentForm onSubmit={handleCommentSubmit} />
+          <NewCommentForm
+            onSubmit={handleCommentSubmit}
+            isSubmitting={isSubmitting}
+          />
         )}
       </div>
     </>

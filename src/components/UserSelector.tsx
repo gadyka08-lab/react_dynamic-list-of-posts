@@ -1,5 +1,5 @@
 import { User } from '../types/User';
-import React, { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 export interface Props {
   users: User[];
   // Стан може бути об'єктом користувача або null, якщо ніхто не обраний
@@ -15,9 +15,32 @@ export const UserSelector: React.FC<Props> = ({
   handleSelectUser,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // перевіряємо, куди клікнув юзер
+    const handleClickOutside = (event: MouseEvent) => {
+      // чи був цей клік поза компонентом
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        // якщо так —> setIsOpen(false)
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    // видаляє слухач, якщо компонент видаляється або закривається
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   return (
     <div
+      ref={dropdownRef}
       data-cy="UserSelector"
       className={`dropdown ${isOpen ? 'is-active' : ''}`}
     >
@@ -30,7 +53,7 @@ export const UserSelector: React.FC<Props> = ({
           // перемикаємо стан isOpen на протилежний при кліку
           onClick={() => setIsOpen(!isOpen)}
         >
-          <span>{selectedUser ? selectedUser.name : 'Select user'}</span>
+          <span>{selectedUser ? selectedUser.name : 'Choose a user'}</span>
         </button>
       </div>
 
@@ -40,7 +63,7 @@ export const UserSelector: React.FC<Props> = ({
             <a
               key={user.id}
               href={`#user-${user.id}`}
-              className="dropdown-item"
+              className={`dropdown-item ${selectedUser?.id === user.id ? 'is-active' : ''}`}
               onClick={() => {
                 handleSelectUser(user);
                 // закриваємо меню після вибору юзера

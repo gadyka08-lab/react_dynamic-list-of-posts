@@ -3,9 +3,10 @@ import { CommentData } from '../types/Comment';
 
 interface Props {
   onSubmit: (newComment: CommentData) => void;
+  isSubmitting: boolean;
 }
 
-export const NewCommentForm: React.FC<Props> = ({ onSubmit }) => {
+export const NewCommentForm: React.FC<Props> = ({ onSubmit, isSubmitting }) => {
   const [formData, setFormData] = useState<CommentData>({
     name: '',
     email: '',
@@ -30,43 +31,68 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit }) => {
       ...prev,
       [name]: value,
     }));
+
+    // Скидаємо помилку для поля при його редагуванні
+    setErrors(prev => ({
+      ...prev,
+      [name]: '',
+    }));
   };
 
   const validateForm = () => {
     const newErrors = { name: '', email: '', body: '' };
+    let isValid = true;
 
     // перевірка імені
-    if (formData.name.trim().length <= 4) {
+    if (!formData.name.trim()) {
       newErrors.name = 'Name is required';
+      isValid = false;
     }
 
     // перевірка мейлу
-    if (!formData.email.includes('@') || !formData.email.includes('.')) {
+    if (
+      !formData.email.trim() ||
+      !formData.email.includes('@') ||
+      !formData.email.includes('.')
+    ) {
       newErrors.email = 'Email is required';
+      isValid = false;
     }
 
     // перевірка тексту коментаря (мінімум символів)
-    if (formData.body.trim().length < 10) {
+    if (!formData.body.trim()) {
       newErrors.body = 'Enter some text';
+      isValid = false;
     }
 
     setErrors(newErrors);
 
-    return newErrors;
+    return isValid;
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    // валідуємось
-    const currentErrors = validateForm();
-
     setIsSubmitted(true);
 
-    // перевірка наявності помилок перед відправкою на сервер
-    if (!currentErrors.name && !currentErrors.email && !currentErrors.body) {
-      onSubmit(formData);
+    // валідуємось
+    if (!validateForm()) {
+      return;
     }
+
+    // перевірка наявності помилок перед відправкою на сервер
+    onSubmit(formData);
+
+    // Очищуємо форму та стан відправки після успішного сабміту
+    setFormData({ name: '', email: '', body: '' });
+    setErrors({ name: '', email: '', body: '' });
+    setIsSubmitted(false);
+  };
+
+  const handleClear = () => {
+    setFormData({ name: '', email: '', body: '' });
+    setErrors({ name: '', email: '', body: '' });
+    setIsSubmitted(false);
   };
 
   return (
@@ -173,14 +199,22 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit }) => {
 
       <div className="field is-grouped">
         <div className="control">
-          <button type="submit" className="button is-link">
+          <button
+            type="submit"
+            className={`button is-link ${isSubmitting ? 'is-loading' : ''}`}
+            disabled={isSubmitting}
+          >
             Add
           </button>
         </div>
 
         <div className="control">
           {/* eslint-disable-next-line react/button-has-type */}
-          <button type="reset" className="button is-link is-light">
+          <button
+            type="button"
+            className="button is-link is-light"
+            onClick={handleClear}
+          >
             Clear
           </button>
         </div>
