@@ -22,7 +22,7 @@ export const PostDetails: React.FC<Props> = ({
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // стан збереження ID коментарів, які видаляються
-  // const [deletingCommentIds, setDeletingCommentIds] = useState<number[]>([]);
+  const [deletingCommentIds, setDeletingCommentIds] = useState<number[]>([]);
 
   useEffect(() => {
     // якщо пост ще не вибрано (null), ми нічого не робимо
@@ -30,13 +30,16 @@ export const PostDetails: React.FC<Props> = ({
       return;
     }
 
+    // Скидаємо стан форми коментарів при зміні поста
+    setShowCommentForm(false);
+
     // вкл лоадер, про всяквипадок скидаємо стару помилку, якщо вона була
     setLoading(true);
     setError(false);
 
     // робимо запит за маршрутом для коментів вибраного поста
     client
-      .get<Comment[]>(`/posts/${selectedPost.id}/comments`)
+      .get<Comment[]>(`/comments?postId=${selectedPost.id}`)
       .then(response => {
         // 💡 Перевіряємо, чи відповідь є масивом
         if (Array.isArray(response)) {
@@ -68,6 +71,8 @@ export const PostDetails: React.FC<Props> = ({
     client
       .post<Comment>(`/posts/${selectedPost.id}/comments`, newCommentData)
       .then(createdComment => {
+        console.log('Відповідь від сервера:', createdComment);
+        console.log('ID коментаря:', createdComment?.id);
         // Додаємо новий коментар до списку вже існуючих коментарів у стані
         setComments(prevComments => [...prevComments, createdComment]);
       })
@@ -151,14 +156,16 @@ export const PostDetails: React.FC<Props> = ({
                 ))
               )}
 
-              <button
-                data-cy="WriteCommentButton"
-                type="button"
-                className="button is-link"
-                onClick={() => setShowCommentForm(true)}
-              >
-                Write a comment
-              </button>
+              {!showCommentForm && (
+                <button
+                  data-cy="WriteCommentButton"
+                  type="button"
+                  className="button is-link"
+                  onClick={() => setShowCommentForm(true)}
+                >
+                  Write a comment
+                </button>
+              )}
             </>
           )}
         </div>
