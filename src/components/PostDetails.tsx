@@ -22,6 +22,7 @@ export const PostDetails: React.FC<Props> = ({
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   // стан збереження ID коментарів, які видаляються
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [deletingCommentIds, setDeletingCommentIds] = useState<number[]>([]);
 
   useEffect(() => {
@@ -41,7 +42,7 @@ export const PostDetails: React.FC<Props> = ({
     client
       .get<Comment[]>(`/comments?postId=${selectedPost.id}`)
       .then(response => {
-        // 💡 Перевіряємо, чи відповідь є масивом
+        // Перевіряємо, чи відповідь є масивом
         if (Array.isArray(response)) {
           setComments(response);
         }
@@ -60,19 +61,17 @@ export const PostDetails: React.FC<Props> = ({
     return null;
   }
 
-  const handleCommentSubmit = (newCommentData: CommentData) => {
+  const handleCommentSubmit = (newCommentData: CommentData): Promise<void> => {
     // перевіряємо чи вибраний якийсь пост, щоб туди + коментар
     if (!selectedPost) {
-      return Promise.reject();
+      return Promise.reject(new Error('No selected post'));
     }
 
     setIsSubmitting(true); // вкл завантаження перед запитом
 
-    client
+    return client
       .post<Comment>(`/posts/${selectedPost.id}/comments`, newCommentData)
       .then(createdComment => {
-        console.log('Відповідь від сервера:', createdComment);
-        console.log('ID коментаря:', createdComment?.id);
         // Додаємо новий коментар до списку вже існуючих коментарів у стані
         setComments(prevComments => [...prevComments, createdComment]);
       })

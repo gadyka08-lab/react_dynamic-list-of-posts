@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { CommentData } from '../types/Comment';
 
 interface Props {
-  onSubmit: (newComment: CommentData) => void;
+  onSubmit: (newComment: CommentData) => Promise<void>;
   isSubmitting: boolean;
 }
 
@@ -80,13 +80,12 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit, isSubmitting }) => {
       return;
     }
 
-    // перевірка наявності помилок перед відправкою на сервер
-    onSubmit(formData);
-
-    // Очищуємо форму та стан відправки після успішного сабміту
-    setFormData({ name: '', email: '', body: '' });
-    setErrors({ name: '', email: '', body: '' });
-    setIsSubmitted(false);
+    onSubmit(formData).then(() => {
+      // Очищуємо форму тільки після успішного виконання запиту в батьківському компоненті
+      setFormData(prev => ({ ...prev, body: '' }));
+      setErrors({ name: '', email: '', body: '' });
+      setIsSubmitted(false);
+    });
   };
 
   const handleClear = () => {
