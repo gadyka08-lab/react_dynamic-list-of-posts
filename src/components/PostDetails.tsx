@@ -66,7 +66,7 @@ export const PostDetails: React.FC<Props> = ({
 
         setComments(prevComments => [...prevComments, commentWithId]);
       })
-      .catch((err) => {
+      .catch(err => {
         setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
 
         return Promise.reject(err);
