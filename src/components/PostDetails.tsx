@@ -8,7 +8,6 @@ import { Comment, CommentData } from '../types/Comment';
 
 interface Props {
   selectedPost: Post | null;
-  // onSubmit: (newComment: CommentData) => void;
   setErrorMessage: (message: string) => void;
 }
 
@@ -21,77 +20,67 @@ export const PostDetails: React.FC<Props> = ({
   const [error, setError] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  // стан збереження ID коментарів, які видаляються
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [deletingCommentIds, setDeletingCommentIds] = useState<number[]>([]);
 
   useEffect(() => {
-    // якщо пост ще не вибрано (null), ми нічого не робимо
     if (!selectedPost) {
       return;
     }
 
-    // Скидаємо стан форми коментарів при зміні поста
     setShowCommentForm(false);
-
-    // вкл лоадер, про всяквипадок скидаємо стару помилку, якщо вона була
     setLoading(true);
     setError(false);
 
-    // робимо запит за маршрутом для коментів вибраного поста
     client
       .get<Comment[]>(`/comments?postId=${selectedPost.id}`)
       .then(response => {
-        // Перевіряємо, чи відповідь є масивом
         if (Array.isArray(response)) {
           setComments(response);
         }
       })
       .catch(() => {
-        // якщо з сервера повернувся ерор, вкл стан error
         setError(true);
       })
       .finally(() => {
-        // успіх чи ерор всеодно викл лоадер
         setLoading(false);
       });
-  }, [selectedPost]); // працьовуватиме щоразу, коли змін selectedPost
+  }, [selectedPost]);
 
   if (!selectedPost) {
     return null;
   }
 
   const handleCommentSubmit = (newCommentData: CommentData): Promise<void> => {
-    // перевіряємо чи вибраний якийсь пост, щоб туди + коментар
     if (!selectedPost) {
       return Promise.reject(new Error('No selected post'));
     }
 
-    setIsSubmitting(true); // вкл завантаження перед запитом
+    setIsSubmitting(true);
 
     return client
       .post<Comment>(`/posts/${selectedPost.id}/comments`, newCommentData)
       .then(createdComment => {
-        // Додаємо новий коментар до списку вже існуючих коментарів у стані
-        setComments(prevComments => [...prevComments, createdComment]);
+        const commentWithId = {
+          ...createdComment,
+          id: createdComment.id || Date.now(),
+        };
+
+        setComments(prevComments => [...prevComments, commentWithId]);
       })
-      .catch(() => {
-        return Promise.reject(error);
-        // Обробляємо можливу помилку відправки
+      .catch((err) => {
         setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
+
+        return Promise.reject(err);
       })
       .finally(() => {
-        setIsSubmitting(false); // викл завантаження після завершення запиту
+        setIsSubmitting(false);
       });
   };
 
   const handleCommentDelete = (commentId: number) => {
-    // вид. коментар одразу
     setComments(prevComments =>
       prevComments.filter(comment => comment.id !== commentId),
     );
 
-    // і лише зараз робимозапит на видалення з сервера
     client.delete(`/comments/${commentId}`).catch(() => {
       setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
     });
@@ -121,7 +110,7 @@ export const PostDetails: React.FC<Props> = ({
 
               {comments.length === 0 ? (
                 <p className="title is-4" data-cy="NoCommentsMessage">
-                  {ErrorMessage.NO_COMENTS}
+                  {ErrorMessage.NO_COMMENTS}
                 </p>
               ) : (
                 comments.map(comment => (
@@ -143,7 +132,6 @@ export const PostDetails: React.FC<Props> = ({
                         className="delete is-small"
                         aria-label="delete"
                         onClick={() => handleCommentDelete(comment.id)}
-                        disabled={deletingCommentIds.includes(comment.id)}
                       >
                         delete button
                       </button>
