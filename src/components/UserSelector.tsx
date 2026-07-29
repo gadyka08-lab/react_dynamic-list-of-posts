@@ -1,10 +1,9 @@
 import { User } from '../types/User';
 import { useState, useRef, useEffect } from 'react';
+
 export interface Props {
   users: User[];
-  // Стан може бути об'єктом користувача або null, якщо ніхто не обраний
   selectedUser: User | null;
-  setSelectedUser: (user: User | null) => void;
   handleSelectUser: (user: User) => void;
 }
 
@@ -63,7 +62,8 @@ export const UserSelector: React.FC<Props> = ({
               key={user.id}
               href={`#user-${user.id}`}
               className={`dropdown-item ${selectedUser?.id === user.id ? 'is-active' : ''}`}
-              onClick={() => {
+              onClick={event => {
+                event.preventDefault(); // Запобігаємо зайвому стрибку сторінки за якорем
                 handleSelectUser(user);
                 // закриваємо меню після вибору юзера
                 setIsOpen(false);

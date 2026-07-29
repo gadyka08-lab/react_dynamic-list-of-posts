@@ -8,30 +8,30 @@ import { PostsList } from './components/PostsList';
 import { PostDetails } from './components/PostDetails';
 import { UserSelector } from './components/UserSelector';
 import { Loader } from './components/Loader';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, SetStateAction } from 'react';
 import { client } from './utils/fetchClient';
 import { Post } from './types/Post';
 import { User } from './types/User';
 import { ErrorMessage } from './types/error';
 
 export const App = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
   const [errorMessage, setErrorMessage] = useState('');
-  // Стан для зберігання списку всіх користувачів, завантажених з API
   const [users, setUsers] = useState<User[]>([]);
 
-  // Стан для зберігання обраного користувача (або null, якщо ніхто не вибраний)
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [state, setState] = useState({
+    posts: [] as Post[],
+    selectedUser: null as User | null,
+    isLoading: false,
+    selectedPost: null as Post | null,
+  });
 
-  // Ефект для первинного завантаження юзерів
+  const { posts, selectedUser, isLoading, selectedPost } = state;
+
   useEffect(() => {
     client
       .get<User[]>('/users')
       .then(setUsers)
       .catch(() => {
-        // У разі помилки завантаження показуємо відповідне повідомлення
         setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
       });
   }, []);
@@ -44,25 +44,36 @@ export const App = () => {
     client
       .get<Post[]>(`/posts?userId=${selectedUser.id}`)
       .then(response => {
-        // записуємо отримані пости у стан
-        setPosts(response);
+        setState(prev => ({
+          ...prev,
+          posts: response,
+        }));
       })
       .catch(() => {
-        // якщо помилка---- повідомлення
         setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
       })
       .finally(() => {
-        // вимикаємо лоадер незалежно від результату запиту
-        setIsLoading(false);
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+        }));
       });
-  }, [selectedUser]); // дивимося за зміною вибраного юзера
+  }, [selectedUser]);
 
-  // функцію обробника
   const handleSelectUser = (user: User) => {
-    setPosts([]);
-    setSelectedUser(user);
-    setIsLoading(true);
-    setSelectedPost(null);
+    setState({
+      posts: [],
+      selectedUser: user,
+      isLoading: true,
+      selectedPost: null,
+    });
+  };
+
+  const setSelectedPost = (post: SetStateAction<Post | null>) => {
+    setState(prev => ({
+      ...prev,
+      selectedPost: typeof post === 'function' ? post(prev.selectedPost) : post,
+    }));
   };
 
   return (
@@ -75,7 +86,6 @@ export const App = () => {
                 <UserSelector
                   users={users}
                   selectedUser={selectedUser}
-                  setSelectedUser={setSelectedUser}
                   handleSelectUser={handleSelectUser}
                 />
               </div>
@@ -117,7 +127,7 @@ export const App = () => {
               'is-8-desktop',
               'Sidebar',
               {
-                'Sidebar--open': selectedPost !== null, // + клас за наявності вибраного поста
+                'Sidebar--open': selectedPost !== null,
               },
             )}
           >
