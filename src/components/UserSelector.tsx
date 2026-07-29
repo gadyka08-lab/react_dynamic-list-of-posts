@@ -11,7 +11,6 @@ export interface Props {
 export const UserSelector: React.FC<Props> = ({
   users,
   selectedUser,
-  //setSelectedUser,
   handleSelectUser,
 }) => {
   const [isOpen, setIsOpen] = useState(false);

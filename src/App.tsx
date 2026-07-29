@@ -59,6 +59,7 @@ export const App = () => {
 
   // функцію обробника
   const handleSelectUser = (user: User) => {
+    setPosts([]);
     setSelectedUser(user);
     setIsLoading(true);
     setSelectedPost(null);
