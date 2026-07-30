@@ -68,6 +68,7 @@ export const App = () => {
       selectedPost: null,
     });
   };
+  //
 
   const setSelectedPost = (post: SetStateAction<Post | null>) => {
     setState(prev => ({
