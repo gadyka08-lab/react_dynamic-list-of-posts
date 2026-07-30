@@ -26,7 +26,7 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit, isSubmitting }) => {
   ) => {
     const { name, value } = event.target;
 
-    // оновл стан форми, зберігаючи попереднє знач та змін лише поточне
+    // оновлюємо стан форми, зберігаючи попередні значення та змінюючи лише поточне
     setFormData(prev => ({
       ...prev,
       [name]: value,
@@ -59,7 +59,7 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit, isSubmitting }) => {
       isValid = false;
     }
 
-    // перевірка тексту коментаря (мінімум символів)
+    // перевірка тексту коментаря
     if (!formData.body.trim()) {
       newErrors.body = 'Enter some text';
       isValid = false;
@@ -81,8 +81,8 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit, isSubmitting }) => {
     }
 
     onSubmit(formData).then(() => {
-      // Очищуємо форму тільки після успішного виконання запиту в батьківському компоненті
-      setFormData(prev => ({ ...prev, body: '' }));
+      // Повністю очищуємо форму після успішного виконання запиту
+      setFormData({ name: '', email: '', body: '' });
       setErrors({ name: '', email: '', body: '' });
       setIsSubmitted(false);
     });
