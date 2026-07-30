@@ -48,7 +48,6 @@ export const UserSelector: React.FC<Props> = ({
           className="button"
           aria-haspopup="true"
           aria-controls="dropdown-menu"
-          // перемикаємо стан isOpen на протилежний при кліку
           onClick={() => setIsOpen(!isOpen)}
         >
           <span>{selectedUser ? selectedUser.name : 'Choose a user'}</span>

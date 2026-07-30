@@ -32,7 +32,6 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit, isSubmitting }) => {
       [name]: value,
     }));
 
-    // Скидаємо помилку для поля при його редагуванні
     setErrors(prev => ({
       ...prev,
       [name]: '',
