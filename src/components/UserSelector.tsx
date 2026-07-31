@@ -30,7 +30,7 @@ export const UserSelector: React.FC<Props> = ({
 
     document.addEventListener('mousedown', handleClickOutside);
 
-    // видаляє слухач, якщо компонент видаляється або закривається//
+    // видаляє слухач, якщо компонент видаляється або закривається//.
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };

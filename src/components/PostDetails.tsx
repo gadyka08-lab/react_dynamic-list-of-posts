@@ -51,7 +51,7 @@ export const PostDetails: React.FC<Props> = ({
 
   if (!selectedPost) {
     return null;
-  } 
+  }
 
   const handleCommentSubmit = (newCommentData: CommentData): Promise<void> => {
     if (!selectedPost) {

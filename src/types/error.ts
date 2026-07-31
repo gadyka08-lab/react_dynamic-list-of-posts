@@ -3,3 +3,4 @@ export enum ErrorMessage {
   NO_POSTS = 'No posts yet',
   NO_COMMENTS = 'No comments yet',
 }
+//

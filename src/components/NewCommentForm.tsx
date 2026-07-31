@@ -48,7 +48,7 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit, isSubmitting }) => {
       isValid = false;
     }
 
-    // перевірка мейлу//
+    // перевірка мейлу// .
     if (
       !formData.email.trim() ||
       !formData.email.includes('@') ||

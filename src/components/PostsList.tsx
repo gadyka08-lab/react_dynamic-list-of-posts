@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const PostsList: React.FC<Props> = ({
-  posts, //
+  posts, //.
   selectedPost,
   setSelectedPost,
 }) => (
