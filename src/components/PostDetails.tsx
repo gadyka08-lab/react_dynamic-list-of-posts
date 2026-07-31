@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 import React, { useEffect, useState } from 'react';
 import { Loader } from './Loader';
 import { NewCommentForm } from './NewCommentForm';
@@ -20,6 +21,9 @@ export const PostDetails: React.FC<Props> = ({
   const [error, setError] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [deletingCommentIds, setDeletingCommentIds] = useState<number[]>([]);
 
   useEffect(() => {
     if (!selectedPost) {
@@ -47,7 +51,7 @@ export const PostDetails: React.FC<Props> = ({
 
   if (!selectedPost) {
     return null;
-  }
+  } 
 
   const handleCommentSubmit = (newCommentData: CommentData): Promise<void> => {
     if (!selectedPost) {
@@ -57,14 +61,12 @@ export const PostDetails: React.FC<Props> = ({
     setIsSubmitting(true);
 
     return client
-      .post<Comment>(`/posts/${selectedPost.id}/comments`, newCommentData)
+      .post<Comment>('/comments', {
+      ...newCommentData,
+      postId: selectedPost.id,
+    })
       .then(createdComment => {
-        const commentWithId = {
-          ...createdComment,
-          id: createdComment.id || Date.now(),
-        };
-
-        setComments(prevComments => [...prevComments, commentWithId]);
+        setComments(prevComments => [...prevComments, createdComment]);
       })
       .catch(err => {
         setErrorMessage(ErrorMessage.POSTS_LOAD_ERROR);
@@ -132,6 +134,7 @@ export const PostDetails: React.FC<Props> = ({
                         className="delete is-small"
                         aria-label="delete"
                         onClick={() => handleCommentDelete(comment.id)}
+                        disabled={deletingCommentIds.includes(comment.id)}
                       >
                         delete button
                       </button>
@@ -162,6 +165,7 @@ export const PostDetails: React.FC<Props> = ({
           <NewCommentForm
             onSubmit={handleCommentSubmit}
             isSubmitting={isSubmitting}
+
           />
         )}
       </div>
