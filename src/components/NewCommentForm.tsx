@@ -80,8 +80,11 @@ export const NewCommentForm: React.FC<Props> = ({ onSubmit, isSubmitting }) => {
     }
 
     onSubmit(formData).then(() => {
-      // Повністю очищуємо форму після успішного виконання запиту
-      setFormData({ name: '', email: '', body: '' });
+      // Очищаємо лише текст коментаря, а ім'я та email залишаємо
+      setFormData(prev => ({
+        ...prev,
+        body: '',
+      }));
       setErrors({ name: '', email: '', body: '' });
       setIsSubmitted(false);
     });
